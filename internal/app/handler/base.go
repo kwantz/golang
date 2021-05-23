@@ -2,21 +2,10 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
-)
 
-type (
-	user struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	}
-)
-
-var (
-	users = map[int]*user{}
-	seq   = 1
+	"github.com/kwantz/golang/internal/app/usecase"
 )
 
 func Routes(e *echo.Echo) {
@@ -33,38 +22,41 @@ func hello(c echo.Context) error {
 }
 
 func createUser(c echo.Context) error {
-	u := &user{
-		ID: seq,
-	}
-	if err := c.Bind(u); err != nil {
+	u, err := usecase.CreateUser(c)
+	if err != nil {
 		return err
 	}
-	users[u.ID] = u
-	seq++
 	return c.JSON(http.StatusCreated, u)
 }
 
 func getUser(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
-	return c.JSON(http.StatusOK, users[id])
+	u, err := usecase.GetUser(c)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, u)
 }
 
 func updateUser(c echo.Context) error {
-	u := new(user)
-	if err := c.Bind(u); err != nil {
+	u, err := usecase.UpdateUser(c)
+	if err != nil {
 		return err
 	}
-	id, _ := strconv.Atoi(c.Param("id"))
-	users[id].Name = u.Name
-	return c.JSON(http.StatusOK, users[id])
+	return c.JSON(http.StatusOK, u)
 }
 
 func deleteUser(c echo.Context) error {
-	id, _ := strconv.Atoi(c.Param("id"))
-	delete(users, id)
+	err := usecase.DeleteUser(c)
+	if err != nil {
+		return err
+	}
 	return c.NoContent(http.StatusNoContent)
 }
 
 func getAllUsers(c echo.Context) error {
-	return c.JSON(http.StatusOK, users)
+	u, err := usecase.GetAllUsers(c)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, u)
 }
